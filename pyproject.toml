@@ -54,3 +54,4 @@ manylinux-x86_64-image = "manylinux_2_28"
 
 [project.scripts]
 build_data = "alphafold3.build_data:build_data"
+alphafold3 = "alphafold3.inference.run_alphafold:run_alphafold"

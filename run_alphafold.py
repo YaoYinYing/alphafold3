@@ -53,6 +53,11 @@ import jax
 from jax import numpy as jnp
 import numpy as np
 
+# inject env
+# https://github.com/YaoYinYing/alphafold3/blob/8151373a6bdcd6d6f1ff8664d3e5b878c0648863/docker/Dockerfile#L63
+os.environ['XLA_FLAGS'] = '--xla_gpu_enable_triton_gemm=false'
+os.environ['XLA_PYTHON_CLIENT_PREALLOCATE'] = 'true'
+os.environ['XLA_CLIENT_MEM_FRACTION'] = '0.95'
 
 _HOME_DIR = pathlib.Path(os.environ.get('HOME'))
 _DEFAULT_MODEL_DIR = _HOME_DIR / 'models'
@@ -823,7 +828,9 @@ def main(_):
 
   print(f'Done running {num_fold_inputs} fold jobs.')
 
-
-if __name__ == '__main__':
+def run_alphafold():
   flags.mark_flags_as_required(['output_dir'])
   app.run(main)
+
+if __name__ == '__main__':
+  run_alphafold()
