@@ -61,7 +61,7 @@ os.environ['XLA_CLIENT_MEM_FRACTION'] = '0.95'
 
 _HOME_DIR = pathlib.Path(os.environ.get('HOME'))
 _DEFAULT_MODEL_DIR = _HOME_DIR / 'af3_models'
-_DEFAULT_DB_DIR = _HOME_DIR / 'public_databases'
+_DEFAULT_DB_DIR = pathlib.Path('/mnt/db/alphafold3')
 
 
 # Input and output paths.
@@ -135,7 +135,7 @@ DB_DIR = flags.DEFINE_multi_string(
 
 _SMALL_BFD_DATABASE_PATH = flags.DEFINE_string(
     'small_bfd_database_path',
-    '${DB_DIR}/bfd-first_non_consensus_sequences.fasta',
+    '/mnt/db/reduced_bfd/bfd-first_non_consensus_sequences.fasta',
     'Small BFD database path, used for protein MSA search.',
 )
 _MGNIFY_DATABASE_PATH = flags.DEFINE_string(
@@ -838,8 +838,9 @@ def run_alphafold_splitted():
     [True, False], # run data pipeline w/o using GPU
     [False, True] # run inference directly
     ):
-    _RUN_DATA_PIPELINE.value=i
-    _RUN_INFERENCE.value=j
+    # mocking against flags
+    flags.FLAGS.run_data_pipeline=i
+    flags.FLAGS.run_inference=j
     app.run(main)
 
 

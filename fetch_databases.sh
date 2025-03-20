@@ -13,7 +13,7 @@ set -euo pipefail
 
 readonly db_dir=${1:-$HOME/public_databases}
 
-for cmd in wget tar zstd ; do
+for cmd in aria2c tar zstd ; do
   if ! command -v "${cmd}" > /dev/null 2>&1; then
     echo "${cmd} is not installed. Please install it."
   fi
@@ -32,7 +32,9 @@ if [ ! -f "${db_dir}/pdb_2022_09_28_mmcif_files.tar.done" ]; then
     echo "Failed to fetch pdb_2022_09_28_mmcif_files.tar.zst"
 fi 
 
+
 for NAME in mgy_clusters_2022_05.fa \
+            bfd-first_non_consensus_sequences.fasta \
             uniref90_2022_05.fa uniprot_all_2021_04.fa \
             pdb_seqres_2022_09_28.fasta \
             rnacentral_active_seq_id_90_cov_80_linclust.fasta \
@@ -41,9 +43,14 @@ for NAME in mgy_clusters_2022_05.fa \
   echo "Start Fetching '${NAME}'"
   if [ -f "${db_dir}/${NAME}.done" ]; then
     continue
+    echo "Skipping ${NAME} because a done file exists"
   fi
 
-  aria2c -c -x 16 -d "${db_dir}" "${SOURCE}/${NAME}.zst" && zstd --decompress "${db_dir}/${NAME}.zst" -o "${db_dir}/${NAME}" &&  touch "${db_dir}/${NAME}.done" || \
+  aria2c -c -x 16 -d "${db_dir}" "${SOURCE}/${NAME}.zst" && \
+    echo "Decompressing ${NAME}" && \
+    zstd --decompress "${db_dir}/${NAME}.zst" -o "${db_dir}/${NAME}" &&  \
+    echo "Done decompressing ${NAME}" && \
+    touch "${db_dir}/${NAME}.done" || \
     echo "Failed to fetch ${NAME}"
 
 done
