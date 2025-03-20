@@ -60,7 +60,7 @@ os.environ['XLA_PYTHON_CLIENT_PREALLOCATE'] = 'true'
 os.environ['XLA_CLIENT_MEM_FRACTION'] = '0.95'
 
 _HOME_DIR = pathlib.Path(os.environ.get('HOME'))
-_DEFAULT_MODEL_DIR = _HOME_DIR / 'models'
+_DEFAULT_MODEL_DIR = _HOME_DIR / 'af3_models'
 _DEFAULT_DB_DIR = _HOME_DIR / 'public_databases'
 
 
@@ -831,6 +831,17 @@ def main(_):
 def run_alphafold():
   flags.mark_flags_as_required(['output_dir'])
   app.run(main)
+
+def run_alphafold_splitted():
+  flags.mark_flags_as_required(['output_dir'])
+  for i,j in zip(
+    [True, False], # run data pipeline w/o using GPU
+    [False, True] # run inference directly
+    ):
+    _RUN_DATA_PIPELINE.value=i
+    _RUN_INFERENCE.value=j
+    app.run(main)
+
 
 if __name__ == '__main__':
   run_alphafold()
