@@ -27,6 +27,7 @@ import functools
 import multiprocessing
 import os
 import pathlib
+import pickle
 import shutil
 import string
 import textwrap
@@ -281,7 +282,7 @@ _SAVE_EMBEDDINGS = flags.DEFINE_bool(
 )
 _FORCE_OUTPUT_DIR = flags.DEFINE_bool(
     'force_output_dir',
-    False,
+    True,
     'Whether to force the output directory to be used even if it already exists'
     ' and is non-empty. Useful to set this to True to run the data pipeline and'
     ' the inference separately, but use the same output directory.',
@@ -644,11 +645,19 @@ def process_fold_input(
   else:
     print(f'Output will be written in {output_dir}')
 
+  pkl_file=os.path.join(output_dir, f'{fold_input.sanitised_name()}_data.pkl')
+  
   if data_pipeline_config is None:
     print('Skipping data pipeline...')
+    if os.path.exists(pkl_file):
+      with open(pkl_file, 'rb') as f:
+        fold_input = pickle.load(f)
+    else:
+      raise FileNotFoundError(f'{pkl_file} does not exist.')
   else:
     print('Running data pipeline...')
     fold_input = pipeline.DataPipeline(data_pipeline_config).process(fold_input)
+    pickle.dump(fold_input, open(pkl_file, 'wb'))
 
   write_fold_input_json(fold_input, output_dir)
   if model_runner is None:
@@ -834,14 +843,7 @@ def run_alphafold():
 
 def run_alphafold_splitted():
   flags.mark_flags_as_required(['output_dir'])
-  for i,j in zip(
-    [True, False], # run data pipeline w/o using GPU
-    [False, True] # run inference directly
-    ):
-    # mocking against flags
-    flags.FLAGS.run_data_pipeline=i
-    flags.FLAGS.run_inference=j
-    app.run(main)
+  app.run(main)
 
 
 if __name__ == '__main__':
