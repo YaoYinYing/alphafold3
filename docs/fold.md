@@ -5,19 +5,22 @@ Yinying added this file for native folding with AlphaFold 3.
 # Place your pretrained model under `$HOME/af3_models`
 
 >[!CAUTION]
->Every user need to place their own pretrained model under `$HOME/af3_models`. 
+>Every user needs to place their own pretrained model under `$HOME/af3_models`. 
 >This is **mandatory** for running AlphaFold 3 according to [weight policy](https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_PROHIBITED_USE_POLICY.md).
 
 
 ## Help
-This fork has a commandline shortcut `run_alphafold3` for run af3 inferences.
 
-In order to get help message, run
+This fork has a commandline shortcut `run_alphafold3` for running af3 inferences.
+
+In order to get help message, simply run
 ```bash
 run_alphafold3 --helpfull
 ```
+
 ## Prepare the input
-checkout [this page](https://github.com/google-deepmind/alphafold3/blob/main/docs/input.md) for more details.
+
+Checkout [this page](https://github.com/google-deepmind/alphafold3/blob/main/docs/input.md) for more details.
 
 **please remind the version field.** [about version](https://github.com/google-deepmind/alphafold3/blob/main/docs/input.md#versions)
 
@@ -41,9 +44,11 @@ An example of `fold_input.json` looks like the following:
 ```
 
 ## Run AlphaFold 3 with 2 separated stages
-As MSA searching is time consuming and CPU-only, we recommend to run it in two stages to avoid occupying GPU resources during data pipeline.
+
+As MSA searching is time consuming and CPU-only, a folding task is recommend to be executed in two stages to avoid occupying GPU resources during data pipeline.
 
 ### Stage 0: Activate conda env
+
 ```bash
 conda activate alphafold3
 ```
@@ -60,4 +65,42 @@ This produces a new fold input json file at `fold_input_split/2pv7/2pv7_data.jso
 
 ```bash
 run_alphafold3 --json_path fold_input_split/2pv7/2pv7_data.json --output_dir fold_input_split --run_data_pipeline=false --run_inference=true
+```
+
+## Run AlphaFold 3 in batch mode
+
+You can run splitted AlphaFold 3 in batch mode by using the `--input_dir` option. This command takes a directory containing JSON files as input and runs AlphaFold 3 on each of these JSON file.
+
+### Stage 0: Json files preparation
+
+Please make sure each JSON file in the input directory contains a unique `"name"` field.
+
+```bash
+grep -r '"name": ' fold_input_dir
+```
+
+This output all the names of the JSON files in the input directory.
+
+```text
+fold_input_dir/protein_a.json:  "name": "protein_a",
+fold_input_dir/protein_b.json:  "name": "protein_b",
+```
+
+### Stage 1: Data Pipeline (mostly Jackhmmer MSA search)
+
+
+```bash
+run_alphafold3 --input_dir fold_input_dir --output_dir fold_input_split --run_data_pipeline=true --run_inference=false
+```
+
+### Stage 2: Gather new input JSONs
+
+```bash
+mkdir new_input
+find . -name "*_data.json" -exec cp {} new_input/ \;
+```
+
+### Stage 3: Inference (GPU)
+```bash
+run_alphafold3 --input_dir new_input --output_dir fold_input_split --run_data_pipeline=false --run_inference=true
 ```
