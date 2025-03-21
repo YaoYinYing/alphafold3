@@ -645,19 +645,11 @@ def process_fold_input(
   else:
     print(f'Output will be written in {output_dir}')
 
-  pkl_file=os.path.join(output_dir, f'{fold_input.sanitised_name()}_data.pkl')
-  
   if data_pipeline_config is None:
     print('Skipping data pipeline...')
-    if os.path.exists(pkl_file):
-      with open(pkl_file, 'rb') as f:
-        fold_input = pickle.load(f)
-    else:
-      raise FileNotFoundError(f'{pkl_file} does not exist.')
   else:
     print('Running data pipeline...')
     fold_input = pipeline.DataPipeline(data_pipeline_config).process(fold_input)
-    pickle.dump(fold_input, open(pkl_file, 'wb'))
 
   write_fold_input_json(fold_input, output_dir)
   if model_runner is None:
