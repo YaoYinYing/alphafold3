@@ -28,15 +28,10 @@ Yinying added this file for native installation.
 5. Adjust database and pretrained models path in `src/alphafold3/inference/run_alphafold.py`
 6. Install AlphaFold, with modified db paths
     ```bash
-    pip3 install --no-deps .
+    pip3 install --no-deps . -vvvv
     ```
-## Help
-This fork has a commandline shortcut `alphafold3` for run af3 inferences.
-
-In order to get help message, run
-```bash
-alphafold3 --helpfull
-```
-
-## Usage
-Every user need to place their own pretrained model under `$HOME/af3_models`. This is mandatory for running AlphaFold 3.
+    This takes a while to compile and make wheel.
+7. Build Chemical Data
+   ```bash
+   build_data
+   ```
