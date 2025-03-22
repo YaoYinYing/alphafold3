@@ -2,7 +2,7 @@
 
 Yinying added this file for native folding with AlphaFold 3.
 
-# Place your pretrained model under `$HOME/af3_models`
+# Place your pretrained model
 
 >[!CAUTION]
 >Every user needs to place their own pretrained model under `$HOME/af3_models`. 
@@ -50,7 +50,7 @@ As MSA searching is time consuming and CPU-only, a folding task is recommend to 
 ### Stage 0: Activate conda env
 
 ```bash
-conda activate alphafold3
+source activate /mnt/data/envs/conda_env/envs/alphafold3/
 ```
 
 ### Stage 1: Data Pipeline (mostly Jackhmmer MSA search)
@@ -103,4 +103,50 @@ find . -name "*_data.json" -exec cp {} new_input/ \;
 ### Stage 3: Inference (GPU)
 ```bash
 run_alphafold3 --input_dir new_input --output_dir fold_input_split --run_data_pipeline=false --run_inference=true
+```
+
+## Run AlphaFold 3 with SLURM
+
+One must create 2 separated sbatch scripts for the data pipeline and the inference.
+
+### Stage 1: Data pipeline
+
+create a file named `data_pipeline.slurm`:
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=af3_data_pipeline
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=24
+
+
+source activate /mnt/data/envs/conda_env/envs/alphafold3/
+run_alphafold3 --json_path fold_input.json --output_dir fold_input_split --run_data_pipeline=true --run_inference=false
+```
+
+then submit the job:
+
+```bash
+sbatch data_pipeline.slurm
+```
+
+### Stage 2: Inference
+
+Create a new slurm script `inference.slurm`:
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=af3_inference
+#SBATCH --gres=gpu:1
+#SBATCH --ntasks=1
+
+
+source activate /mnt/data/envs/conda_env/envs/alphafold3/
+run_alphafold3 --json_path fold_input_split/2pv7/2pv7_data.json --output_dir fold_input_split --run_data_pipeline=false --run_inference=true
+```
+
+Once the data pipeline is finished, submit the script:
+
+```bash
+sbatch inference.slurm
 ```
