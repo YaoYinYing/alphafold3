@@ -99,6 +99,13 @@ _RUN_INFERENCE = flags.DEFINE_bool(
     'Whether to run inference on the fold inputs.',
 )
 
+# https://github.com/google-deepmind/alphafold3/blob/main/docs/performance.md#unified-memory
+_UNIFIED_MEMORY = flags.DEFINE_bool(
+    'unified_memory',
+    False,
+    'Whether to use unified memory.',
+)
+
 # Binary paths.
 _JACKHMMER_BINARY_PATH = flags.DEFINE_string(
     'jackhmmer_binary_path',
@@ -680,6 +687,12 @@ def process_fold_input(
 
 
 def main(_):
+  if _UNIFIED_MEMORY.value:
+    os.environ['XLA_PYTHON_CLIENT_PREALLOCATE']='false'
+    os.environ['TF_FORCE_UNIFIED_MEMORY']='true'
+    os.environ['XLA_CLIENT_MEM_FRACTION']='3.2'
+    print('Using unified memory')
+
   if _JAX_COMPILATION_CACHE_DIR.value is not None:
     jax.config.update(
         'jax_compilation_cache_dir', _JAX_COMPILATION_CACHE_DIR.value
